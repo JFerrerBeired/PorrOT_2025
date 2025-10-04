@@ -1,0 +1,131 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:porrot_2025/data/repositories/contestant_repository_impl.dart';
+import 'package:porrot_2025/domain/usecases/create_contestant_usecase.dart';
+import '../../../domain/entities/contestant.dart';
+
+class ContestantManager extends StatefulWidget {
+  const ContestantManager({super.key});
+
+  @override
+  State<ContestantManager> createState() => _ContestantManagerState();
+}
+
+class _ContestantManagerState extends State<ContestantManager> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _photoUrlController = TextEditingController();
+  final _idController = TextEditingController();
+  ContestantStatus _selectedStatus = ContestantStatus.active;
+
+  late final CreateContestantUseCase _createContestantUseCase;
+
+  @override
+  void initState() {
+    super.initState();
+    // In a real app, use dependency injection
+    final contestantRepository = ContestantRepositoryImpl(
+      FirebaseFirestore.instance,
+    );
+    _createContestantUseCase = CreateContestantUseCase(contestantRepository);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Manage Contestants',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: const InputDecoration(
+                labelText: 'Contestant ID (e.g., contestant_01)',
+              ),
+              validator: (value) =>
+                  value!.isEmpty ? 'Please enter an ID' : null,
+            ),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+              validator: (value) =>
+                  value!.isEmpty ? 'Please enter a name' : null,
+            ),
+            TextFormField(
+              controller: _photoUrlController,
+              decoration: const InputDecoration(labelText: 'Photo URL'),
+              validator: (value) =>
+                  value!.isEmpty ? 'Please enter a URL' : null,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<ContestantStatus>(
+              initialValue: _selectedStatus,
+              decoration: const InputDecoration(labelText: 'Status'),
+              onChanged: (ContestantStatus? newValue) {
+                setState(() {
+                  _selectedStatus = newValue!;
+                });
+              },
+              items: ContestantStatus.values.map((ContestantStatus status) {
+                return DropdownMenuItem<ContestantStatus>(
+                  value: status,
+                  child: Text(status.toString().split('.').last),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _saveContestant,
+              child: const Text('Save Contestant'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _saveContestant() async {
+    if (_formKey.currentState!.validate()) {
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final contestant = Contestant(
+        contestantId: _idController.text,
+        name: _nameController.text,
+        photoUrl: _photoUrlController.text,
+        status: _selectedStatus,
+      );
+
+      try {
+        await _createContestantUseCase.execute(contestant);
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('Contestant saved successfully!')),
+        );
+        _formKey.currentState!.reset();
+        _nameController.clear();
+        _photoUrlController.clear();
+        _idController.clear();
+        setState(() {
+          _selectedStatus = ContestantStatus.active;
+        });
+      } catch (e) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Failed to save contestant: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _photoUrlController.dispose();
+    _idController.dispose();
+    super.dispose();
+  }
+}

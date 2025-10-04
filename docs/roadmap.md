@@ -8,15 +8,15 @@ También es responsabilidad del desarrollador actualizar este documento conforme
 
 #### **Hito 1: El Andamiaje y los Datos Maestros**
 
-*   **Estado:** `[ ] Incompleto`
+*   **Estado:** `[x] Completo`
 
 *   **Objetivo:** Establecer la base técnica del proyecto, configurar la infraestructura de datos y crear una vía para introducir los datos maestros (concursantes y galas) que son prerrequisito para cualquier otra funcionalidad.
 
 *   **Desarrollos Clave:**
-    *   [ ] Configurar el proyecto en Firebase y la conexión con la app Flutter.
-    *   [ ] Crear la estructura de directorios del proyecto siguiendo la Clean Architecture (`data`, `domain`, `presentation`).
-    *   [ ] Definir todas las Entidades y Modelos de Datos (User, Gala, Contestant, Prediction, AppConfig).
-    *   [ ] Implementar una vista básica de Panel de Administración (puede ser una ruta de acceso directo) que permita:
+    *   [x] Configurar el proyecto en Firebase y la conexión con la app Flutter.
+    *   [x] Crear la estructura de directorios del proyecto siguiendo la Clean Architecture (`data`, `domain`, `presentation`).
+    *   [x] Definir todas las Entidades y Modelos de Datos (User, Gala, Contestant, Prediction, AppConfig).
+    *   [x] Implementar una vista básica de Panel de Administración (puede ser una ruta de acceso directo) que permita:
         *   Crear y editar documentos en la colección `contestants` (incluyendo la gestión de sus estados: activo, nominado, eliminado, ganador).
         *   Crear documentos básicos en la colección `galas` (solo con `galaId` y `galaNumber`).
 

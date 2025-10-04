@@ -1,0 +1,109 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:porrot_2025/data/repositories/gala_repository_impl.dart';
+import 'package:porrot_2025/domain/entities/gala.dart';
+import 'package:porrot_2025/domain/usecases/create_gala_usecase.dart';
+
+class GalaManager extends StatefulWidget {
+  const GalaManager({super.key});
+
+  @override
+  State<GalaManager> createState() => _GalaManagerState();
+}
+
+class _GalaManagerState extends State<GalaManager> {
+  final _formKey = GlobalKey<FormState>();
+  final _galaNumberController = TextEditingController();
+  final _galaIdController = TextEditingController();
+
+  late final CreateGalaUseCase _createGalaUseCase;
+
+  @override
+  void initState() {
+    super.initState();
+    // In a real app, use dependency injection
+    final galaRepository = GalaRepositoryImpl(FirebaseFirestore.instance);
+    _createGalaUseCase = CreateGalaUseCase(galaRepository);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Manage Galas',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _galaIdController,
+              decoration: const InputDecoration(
+                labelText: 'Gala ID (e.g., gala_01)',
+              ),
+              validator: (value) =>
+                  value!.isEmpty ? 'Please enter an ID' : null,
+            ),
+            TextFormField(
+              controller: _galaNumberController,
+              decoration: const InputDecoration(labelText: 'Gala Number'),
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a gala number';
+                }
+                if (int.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _saveGala,
+              child: const Text('Create Gala'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _saveGala() async {
+    if (_formKey.currentState!.validate()) {
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final gala = Gala(
+        galaId: _galaIdController.text,
+        galaNumber: int.parse(_galaNumberController.text),
+        date: DateTime.now(), // Defaulting date, can be changed later
+        nominatedContestants: [], // Empty for now
+        results: {}, // Empty for now
+      );
+
+      try {
+        await _createGalaUseCase.execute(gala);
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('Gala created successfully!')),
+        );
+        _formKey.currentState!.reset();
+        _galaNumberController.clear();
+        _galaIdController.clear();
+      } catch (e) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Failed to create gala: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _galaNumberController.dispose();
+    _galaIdController.dispose();
+    super.dispose();
+  }
+}
