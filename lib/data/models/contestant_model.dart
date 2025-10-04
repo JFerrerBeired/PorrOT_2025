@@ -2,9 +2,9 @@ import '../../domain/entities/contestant.dart';
 
 class ContestantModel extends Contestant {
   ContestantModel({
-    required super.contestantId,
+    super.contestantId,
     required super.name,
-    required super.photoUrl,
+    super.photoUrl, // Now optional
     required super.status,
   });
 
@@ -15,7 +15,7 @@ class ContestantModel extends Contestant {
     return ContestantModel(
       contestantId: documentId,
       name: data['name'],
-      photoUrl: data['photoUrl'],
+      photoUrl: data['photoUrl'], // Will be null if not present
       status: ContestantStatus.values.firstWhere(
         (e) => e.toString() == 'ContestantStatus.${data['status']}',
       ),
@@ -25,7 +25,7 @@ class ContestantModel extends Contestant {
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
-      'photoUrl': photoUrl,
+      if (photoUrl != null) 'photoUrl': photoUrl, // Only include photoUrl if it's not null
       'status': status.toString().split('.').last,
     };
   }

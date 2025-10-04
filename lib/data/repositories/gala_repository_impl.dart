@@ -17,10 +17,16 @@ class GalaRepositoryImpl implements GalaRepository {
       nominatedContestants: gala.nominatedContestants,
       results: gala.results,
     );
-    await _firestore
-        .collection('galas')
-        .doc(gala.galaId)
-        .set(galaModel.toFirestore());
+    
+    // If galaId is null, auto-generate one using Firestore's document ID
+    if (gala.galaId == null) {
+      await _firestore.collection('galas').add(galaModel.toFirestore());
+    } else {
+      await _firestore
+          .collection('galas')
+          .doc(gala.galaId)
+          .set(galaModel.toFirestore());
+    }
   }
 
   @override
@@ -46,9 +52,13 @@ class GalaRepositoryImpl implements GalaRepository {
       nominatedContestants: gala.nominatedContestants,
       results: gala.results,
     );
-    await _firestore
-        .collection('galas')
-        .doc(gala.galaId)
-        .update(galaModel.toFirestore());
+    
+    // Use the existing ID if available
+    if (gala.galaId != null) {
+      await _firestore
+          .collection('galas')
+          .doc(gala.galaId)
+          .update(galaModel.toFirestore());
+    }
   }
 }

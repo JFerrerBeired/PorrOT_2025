@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GalaModel extends Gala {
   GalaModel({
-    required super.galaId,
+    super.galaId,
     required super.galaNumber,
     required super.date,
     required super.nominatedContestants,

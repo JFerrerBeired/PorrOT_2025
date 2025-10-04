@@ -11,15 +11,21 @@ class ContestantRepositoryImpl implements ContestantRepository {
   @override
   Future<void> createContestant(Contestant contestant) async {
     final contestantModel = ContestantModel(
-      contestantId: contestant.contestantId,
+      contestantId: contestant.contestantId, // Will be null initially for new contestants
       name: contestant.name,
       photoUrl: contestant.photoUrl,
       status: contestant.status,
     );
-    await _firestore
-        .collection('contestants')
-        .doc(contestant.contestantId)
-        .set(contestantModel.toFirestore());
+    
+    // If contestantId is null, auto-generate one using Firestore's document ID
+    if (contestant.contestantId == null) {
+      await _firestore.collection('contestants').add(contestantModel.toFirestore());
+    } else {
+      await _firestore
+          .collection('contestants')
+          .doc(contestant.contestantId)
+          .set(contestantModel.toFirestore());
+    }
   }
 
   @override
@@ -44,9 +50,13 @@ class ContestantRepositoryImpl implements ContestantRepository {
       photoUrl: contestant.photoUrl,
       status: contestant.status,
     );
-    await _firestore
-        .collection('contestants')
-        .doc(contestant.contestantId)
-        .update(contestantModel.toFirestore());
+    
+    // Use the existing ID if available
+    if (contestant.contestantId != null) {
+      await _firestore
+          .collection('contestants')
+          .doc(contestant.contestantId)
+          .update(contestantModel.toFirestore());
+    }
   }
 }
