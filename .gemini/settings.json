@@ -1,0 +1,13 @@
+{
+  "context": {
+    "fileName": [".prompts/flutter.md", "docs/arquitectura.md", "docs/especificaciones.md", "docs/ui_ux.md", "docs/roadmap.md"]
+  },
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": [
+        "mcp-server"
+      ]
+    }
+  }
+}
