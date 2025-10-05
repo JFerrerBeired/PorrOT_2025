@@ -14,54 +14,38 @@ class GalaManager extends StatefulWidget {
 class _GalaManagerState extends State<GalaManager> {
   final _formKey = GlobalKey<FormState>();
   final _galaNumberController = TextEditingController();
+  List<Gala> _galas = [];
+  bool _isLoading = true;
 
   late final CreateGalaUseCase _createGalaUseCase;
+  late final GalaRepositoryImpl _galaRepository;
 
   @override
   void initState() {
     super.initState();
     // In a real app, use dependency injection
-    final galaRepository = GalaRepositoryImpl(FirebaseFirestore.instance);
-    _createGalaUseCase = CreateGalaUseCase(galaRepository);
+    _galaRepository = GalaRepositoryImpl(FirebaseFirestore.instance);
+    _createGalaUseCase = CreateGalaUseCase(_galaRepository);
+    _loadGalas();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Manage Galas',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _galaNumberController,
-              decoration: const InputDecoration(labelText: 'Gala Number'),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a gala number';
-                }
-                if (int.tryParse(value) == null) {
-                  return 'Please enter a valid number';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _saveGala,
-              child: const Text('Create Gala'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _loadGalas() async {
+    try {
+      final galas = await _galaRepository.getAllGalas();
+      setState(() {
+        _galas = galas;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) { // Fix context issue
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load galas: $e')),
+        );
+      }
+    }
   }
 
   void _saveGala() async {
@@ -82,12 +66,90 @@ class _GalaManagerState extends State<GalaManager> {
         );
         _formKey.currentState!.reset();
         _galaNumberController.clear();
+        // Refresh the list of galas
+        _loadGalas();
       } catch (e) {
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Failed to create gala: $e')),
         );
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Manage Galas',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _galaNumberController,
+                  decoration: const InputDecoration(labelText: 'Gala Number'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a gala number';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _saveGala,
+                  child: const Text('Create Gala'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Existing Galas',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (_galas.isEmpty)
+            const Text('No galas found.')
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // To work inside SingleChildScrollView
+              itemCount: _galas.length,
+              itemBuilder: (context, index) {
+                final gala = _galas[index];
+                return Card(
+                  child: ListTile(
+                    title: Text('Gala ${gala.galaNumber}'),
+                    subtitle: Text(
+                      'Date: ${gala.date.toString()} | '
+                      'ID: ${gala.galaId ?? "Auto-generated"}',
+                    ),
+                    trailing: Text(
+                      '${gala.nominatedContestants.length} nominated',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
   }
 
   @override
