@@ -66,23 +66,82 @@ class UnifiedNominationPanel extends StatelessWidget {
     PredictionProvider provider,
     Contestant contestant,
   ) {
+    final theme = Theme.of(context);
     final bool isSavedByProf = provider.savedByProfessors == contestant;
     final bool isSavedByPeers = provider.savedByPeers == contestant;
 
+    Color? borderColor;
+    if (isSavedByProf) {
+      borderColor = theme.primaryColor;
+    } else if (isSavedByPeers) {
+      borderColor = theme.colorScheme.secondary;
+    }
+
     return Card(
       elevation: 2.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+        side: borderColor != null
+            ? BorderSide(color: borderColor, width: 2)
+            : BorderSide.none,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
           children: [
             // Avatar and Name
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.grey.shade200,
-              child: Text(contestant.name[0]),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade200,
+              ),
+              child: ClipOval(
+                child: contestant.photoUrl != null && contestant.photoUrl!.isNotEmpty
+                    ? Image.network(
+                        contestant.photoUrl!,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Show initial if image fails to load
+                          return Center(
+                            child: Text(
+                              contestant.name[0],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          // Show initial while loading
+                          return Center(
+                            child: Text(
+                              contestant.name[0],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          contestant.name[0],
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 contestant.name,
@@ -98,19 +157,34 @@ class UnifiedNominationPanel extends StatelessWidget {
                   context,
                   icon: Icons.school,
                   isSelected: isSavedByProf,
-                  onTap: () => provider.setSavedByProfessors(contestant),
+                  onTap: () {
+                    if (isSavedByProf) {
+                      provider.setSavedByProfessors(null);
+                    } else {
+                      provider.setSavedByProfessors(contestant);
+                    }
+                  },
+                  selectedColor: theme.primaryColor,
                 ),
+                const SizedBox(height: 4),
                 _buildActionButton(
                   context,
                   icon: Icons.people,
                   isSelected: isSavedByPeers,
-                  onTap: () => provider.setSavedByPeers(contestant),
+                  onTap: () {
+                    if (isSavedByPeers) {
+                      provider.setSavedByPeers(null);
+                    } else {
+                      provider.setSavedByPeers(contestant);
+                    }
+                  },
+                  selectedColor: theme.colorScheme.secondary,
                 ),
               ],
             ),
             // Modify/Remove Button
             IconButton(
-              icon: const Icon(Icons.close, size: 18),
+              icon: const Icon(Icons.close, size: 20),
               onPressed: () => provider.toggleNomineeProposal(contestant),
             ),
           ],
@@ -124,6 +198,7 @@ class UnifiedNominationPanel extends StatelessWidget {
     required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
+    required Color selectedColor,
   }) {
     final theme = Theme.of(context);
     return InkWell(
@@ -131,15 +206,17 @@ class UnifiedNominationPanel extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: isSelected
-              ? theme.primaryColor.withAlpha(51)
-              : Colors.transparent,
+          color: isSelected ? selectedColor : Colors.transparent,
           shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? selectedColor : Colors.grey.shade300,
+            width: 1.5,
+          ),
         ),
         child: Icon(
           icon,
           size: 18,
-          color: isSelected ? theme.primaryColor : Colors.grey,
+          color: isSelected ? Colors.white : Colors.grey.shade600,
         ),
       ),
     );

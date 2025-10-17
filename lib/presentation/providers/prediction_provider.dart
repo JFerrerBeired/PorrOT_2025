@@ -158,8 +158,10 @@ class PredictionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setSavedByProfessors(Contestant contestant) {
-    if (_savedByProfessors == contestant) {
+  void setSavedByProfessors(Contestant? contestant) {
+    if (contestant == null) {
+      _savedByProfessors = null;
+    } else if (_savedByProfessors == contestant) {
       _savedByProfessors = null; // Deselect if already selected
     } else if (_savedByPeers == contestant) {
       // If already saved by peers, swap roles
@@ -171,8 +173,10 @@ class PredictionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setSavedByPeers(Contestant contestant) {
-    if (_savedByPeers == contestant) {
+  void setSavedByPeers(Contestant? contestant) {
+    if (contestant == null) {
+      _savedByPeers = null;
+    } else if (_savedByPeers == contestant) {
       _savedByPeers = null; // Deselect if already selected
     } else if (_savedByProfessors == contestant) {
       // If already saved by professors, swap roles

@@ -41,16 +41,55 @@ class ContestantCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 30,
-              // TODO: Replace with actual image loading
-              backgroundColor: Colors.grey.shade200,
-              child: Text(
-                contestant.name.isNotEmpty ? contestant.name[0] : '?',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade200,
+              ),
+              child: ClipOval(
+                child: contestant.photoUrl != null && contestant.photoUrl!.isNotEmpty
+                    ? Image.network(
+                        contestant.photoUrl!,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Show initial if image fails to load
+                          return Center(
+                            child: Text(
+                              contestant.name.isNotEmpty ? contestant.name[0] : '?',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          // Show initial while loading
+                          return Center(
+                            child: Text(
+                              contestant.name.isNotEmpty ? contestant.name[0] : '?',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Text(
+                          contestant.name.isNotEmpty ? contestant.name[0] : '?',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 8),
