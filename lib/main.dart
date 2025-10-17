@@ -18,6 +18,7 @@ import 'domain/usecases/get_active_contestants_usecase.dart';
 import 'domain/usecases/get_active_gala_id_usecase.dart'; // New import
 import 'domain/usecases/get_all_galas_usecase.dart'; // New import
 import 'domain/usecases/get_gala_details_usecase.dart';
+import 'domain/usecases/get_prediction_for_gala_usecase.dart'; // New import
 import 'domain/usecases/get_users_usecase.dart';
 import 'domain/usecases/set_active_gala_id_usecase.dart'; // New import
 import 'domain/usecases/submit_prediction_usecase.dart';
@@ -107,6 +108,10 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               SubmitPredictionUseCase(context.read<PredictionRepository>()),
         ),
+        Provider<GetPredictionForGalaUseCase>( // New GetPredictionForGalaUseCase
+          create: (context) =>
+              GetPredictionForGalaUseCase(context.read<PredictionRepository>()),
+        ),
 
         // View Models / State Notifiers
         ChangeNotifierProvider<SessionProvider>(
@@ -134,7 +139,8 @@ class MyApp extends StatelessWidget {
             context.read<GetActiveContestantsUseCase>(),
             context.read<GetGalaDetailsUseCase>(),
             context.read<SubmitPredictionUseCase>(),
-            context.read<AppConfigProvider>(), // New dependency
+            context.read<GetPredictionForGalaUseCase>(), // New dependency
+            context.read<AppConfigProvider>(),
           ),
         ),
       ],

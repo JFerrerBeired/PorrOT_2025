@@ -18,10 +18,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // TODO: Get activeGalaId from somewhere (e.g., AppConfigProvider)
-      // For now, using a placeholder. This will be implemented in Hito 5.
-      Provider.of<PredictionProvider>(context, listen: false)
-          .loadPredictionData('gala_01'); // Placeholder galaId
+      final currentUser = Provider.of<SessionProvider>(context, listen: false).currentUser;
+      if (currentUser != null) {
+        Provider.of<PredictionProvider>(context, listen: false)
+            .loadPredictionData(currentUser.id!); // Pass userId
+      }
     });
   }
 
@@ -68,7 +69,11 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
                 // Sección "Eliminado"
                 _buildSectionTitle('Eliminado'),
-                _buildEliminatedSelection(provider),
+                // Only show if there are nominated contestants
+                if (provider.activeGala!.nominatedContestants.isNotEmpty)
+                  _buildEliminatedSelection(provider)
+                else
+                  const Text('No hay concursantes nominados para esta gala.'),
                 const SizedBox(height: 20),
 
                 // Sección "Favorito"
@@ -77,37 +82,59 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 const SizedBox(height: 20),
 
                 // Sección "Propuestos a Nominado"
-                _buildSectionTitle('Propuestos a Nominado (Selecciona 4)'),
+                _buildSectionTitle('Propuestos a Nominado (Selecciona hasta 4)'), // Changed text
                 _buildNomineeProposalsSelection(provider),
                 const SizedBox(height: 20),
 
                 // Sección "Asigna a los Salvados" (condicional)
+                // Only show if 4 nominees are selected
                 if (provider.selectedNomineeProposals.length == 4)
                   _buildSavedBySelection(provider),
                 const SizedBox(height: 20),
 
-                // Botón "Guardar Predicción"
-                Center(
-                  child: ElevatedButton(
-                    onPressed: provider.isValidPrediction()
-                        ? () async {
-                            final success = await provider.submitPrediction(currentUser.id!); 
-                            if (!mounted) return; // Add this check
-                            if (success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Predicción guardada con éxito!')),
-                              );
-                              Navigator.of(context).pop(); // Go back to dashboard
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(provider.errorMessage)),
-                              );
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Botón "Guardar Borrador"
+                    ElevatedButton(
+                      onPressed: () async {
+                        final success = await provider.savePrediction(currentUser.id!, isFinalSubmission: false);
+                        if (!mounted) return;
+                        if (success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Borrador guardado con éxito!')),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(provider.errorMessage)),
+                          );
+                        }
+                      },
+                      child: const Text('Guardar Borrador'),
+                    ),
+
+                    // Botón "Guardar Predicción" (Envío Final)
+                    ElevatedButton(
+                      onPressed: provider.isValidPredictionForSubmission()
+                          ? () async {
+                              final success = await provider.savePrediction(currentUser.id!, isFinalSubmission: true);
+                              if (!mounted) return;
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Predicción enviada con éxito!')),
+                                );
+                                Navigator.of(context).pop(); // Go back to dashboard
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(provider.errorMessage)),
+                                );
+                              }
                             }
-                          }
-                        : null, // Disable button if prediction is not valid
-                    child: const Text('Guardar Predicción'),
-                  ),
+                          : null, // Disable button if prediction is not valid for submission
+                      child: const Text('Enviar Predicción'), // Changed text
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -134,9 +161,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
             .toList() ??
         [];
 
-    if (nominatedContestants.isEmpty) {
-      return const Text('No hay concursantes nominados para esta gala.');
-    }
+    // This check is now handled in the main build method
+    // if (nominatedContestants.isEmpty) {
+    //   return const Text('No hay concursantes nominados para esta gala.');
+    // }
 
     return Column(
       children: nominatedContestants.map((contestant) {
@@ -171,7 +199,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
         return GestureDetector(
           onTap: () => provider.setSelectedFavorite(contestant),
           child: Card(
-            color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.3) : null,
+            color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.3) : null,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -212,7 +240,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
         return GestureDetector(
           onTap: () => provider.toggleNomineeProposal(contestant),
           child: Card(
-            color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.3) : null,
+            color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.3) : null,
             child: Stack(
               children: [
                 Column(
@@ -252,7 +280,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle('Asigna a los Salvados'),
-        Text('Selecciona quién es salvado por los profesores y quién por los compañeros de entre tus 4 propuestos.', style: Theme.of(context).textTheme.bodySmall,),
+        Text('Toca un concursante para asignarle un rol de salvado.', style: Theme.of(context).textTheme.bodySmall,),
         const SizedBox(height: 10),
         GridView.builder(
           shrinkWrap: true,
@@ -269,56 +297,102 @@ class _PredictionScreenState extends State<PredictionScreen> {
             final isSavedByProfessors = provider.savedByProfessors == contestant;
             final isSavedByPeers = provider.savedByPeers == contestant;
 
-            return Card(
-              elevation: isSavedByProfessors || isSavedByPeers ? 4 : 1,
-              color: isSavedByProfessors || isSavedByPeers
-                  ? Theme.of(context).colorScheme.secondary.withOpacity(0.2)
-                  : null,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: Colors.grey.shade200,
-                      child: Text(contestant.name[0]),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      contestant.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            Icons.school,
-                            color: isSavedByProfessors ? Colors.blue : Colors.grey,
+            Color? cardColor;
+            String? roleText;
+            if (isSavedByProfessors) {
+              cardColor = Colors.blue.withValues(alpha: 0.2);
+              roleText = 'Profesores';
+            } else if (isSavedByPeers) {
+              cardColor = Colors.green.withValues(alpha: 0.2);
+              roleText = 'Compañeros';
+            }
+
+            return GestureDetector(
+              onTap: () => _showRoleSelectionDialog(context, provider, contestant),
+              child: Card(
+                elevation: isSavedByProfessors || isSavedByPeers ? 4 : 1,
+                color: cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Colors.grey.shade200,
+                        child: Text(contestant.name[0]),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        contestant.name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      if (roleText != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Salvado por $roleText',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isSavedByProfessors ? Colors.blue : Colors.green,
                           ),
-                          onPressed: () => provider.setSavedByProfessors(contestant),
-                          tooltip: 'Salvado por Profesores',
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.people,
-                            color: isSavedByPeers ? Colors.green : Colors.grey,
-                          ),
-                          onPressed: () => provider.setSavedByPeers(contestant),
-                          tooltip: 'Salvado por Compañeros',
                         ),
                       ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
           },
         ),
       ],
+    );
+  }
+
+  void _showRoleSelectionDialog(BuildContext context, PredictionProvider provider, Contestant contestant) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Asignar rol a ${contestant.name}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Salvado por Profesores'),
+                leading: const Icon(Icons.school),
+                onTap: () {
+                  provider.setSavedByProfessors(contestant);
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              ListTile(
+                title: const Text('Salvado por Compañeros'),
+                leading: const Icon(Icons.people),
+                onTap: () {
+                  provider.setSavedByPeers(contestant);
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              ListTile(
+                title: const Text('Ninguno'),
+                leading: const Icon(Icons.cancel),
+                onTap: () {
+                  // Clear both roles if this contestant had them
+                  if (provider.savedByProfessors == contestant) {
+                    provider.setSavedByProfessors(contestant); // Toggles off
+                  }
+                  if (provider.savedByPeers == contestant) {
+                    provider.setSavedByPeers(contestant); // Toggles off
+                  }
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -45,12 +45,7 @@ class _GalaConfigManagerState extends State<GalaConfigManager> {
 
         final List<Gala> allGalas = galaProvider.galas;
 
-        // Debug print statement
-        print('Galas loaded for Dropdown:');
-        for (var gala in allGalas) {
-          print('  Gala ID: ${gala.galaId}, Gala Number: ${gala.galaNumber}');
-        }
-        // End debug print statement
+
 
         return Padding(
           padding: const EdgeInsets.all(16.0),
