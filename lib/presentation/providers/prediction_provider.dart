@@ -61,6 +61,11 @@ class PredictionProvider with ChangeNotifier {
       _state = PredictionState.loading;
       notifyListeners();
 
+      // Ensure active gala ID is loaded from Firestore if not already available
+      if (_appConfigProvider.activeGalaId == null || _appConfigProvider.activeGalaId!.isEmpty) {
+        await _appConfigProvider.loadActiveGalaId();
+      }
+
       _activeContestants = await _getActiveContestantsUseCase();
       final activeGalaId = _appConfigProvider.activeGalaId;
       if (activeGalaId != null && activeGalaId.isNotEmpty) {

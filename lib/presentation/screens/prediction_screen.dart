@@ -183,6 +183,12 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   Widget _buildFavoriteSelection(PredictionProvider provider) {
+    // Filter out nominated contestants from the list of active contestants for the favorite selection
+    final List<String> nominatedIds = provider.activeGala?.nominatedContestants ?? [];
+    final List<Contestant> selectableContestants = provider.activeContestants
+        .where((contestant) => !nominatedIds.contains(contestant.contestantId))
+        .toList();
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -192,9 +198,9 @@ class _PredictionScreenState extends State<PredictionScreen> {
         mainAxisSpacing: 8,
         childAspectRatio: 0.8,
       ),
-      itemCount: provider.activeContestants.length,
+      itemCount: selectableContestants.length,
       itemBuilder: (context, index) {
-        final contestant = provider.activeContestants[index];
+        final contestant = selectableContestants[index];
         final isSelected = provider.selectedFavorite == contestant;
         return GestureDetector(
           onTap: () => provider.setSelectedFavorite(contestant),
