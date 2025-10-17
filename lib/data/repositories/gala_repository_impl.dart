@@ -64,4 +64,11 @@ class GalaRepositoryImpl implements GalaRepository {
           .update(galaModel.toFirestore());
     }
   }
+
+  @override
+  Future<void> updateGalaNominees(String galaId, List<String> nominatedContestantIds) async {
+    await _firestore.collection('galas').doc(galaId).update({
+      'nominatedContestants': nominatedContestantIds,
+    });
+  }
 }

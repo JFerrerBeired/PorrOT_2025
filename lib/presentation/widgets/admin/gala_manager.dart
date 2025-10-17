@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:porrot_2025/data/repositories/gala_repository_impl.dart';
 import 'package:porrot_2025/domain/entities/gala.dart';
 import 'package:porrot_2025/domain/usecases/create_gala_usecase.dart';
+import 'package:porrot_2025/presentation/widgets/admin/nominee_selection_widget.dart';
 
 class GalaManager extends StatefulWidget {
   const GalaManager({super.key});
@@ -76,6 +77,15 @@ class _GalaManagerState extends State<GalaManager> {
     }
   }
 
+  void _showNomineeSelectionDialog(String galaId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return NomineeSelectionWidget(galaId: galaId);
+      },
+    ).then((_) => _loadGalas());
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -139,9 +149,18 @@ class _GalaManagerState extends State<GalaManager> {
                       'Date: ${gala.date.toString()} | '
                       'ID: ${gala.galaId ?? "Auto-generated"}',
                     ),
-                    trailing: Text(
-                      '${gala.nominatedContestants.length} nominated',
-                      style: const TextStyle(color: Colors.grey),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${gala.nominatedContestants.length} nominated',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.people),
+                          onPressed: () => _showNomineeSelectionDialog(gala.galaId!),
+                        ),
+                      ],
                     ),
                   ),
                 );
