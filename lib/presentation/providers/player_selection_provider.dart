@@ -37,7 +37,7 @@ class PlayerSelectionProvider with ChangeNotifier {
   Future<User?> createUser(String displayName) async {
     try {
       final newUser = await _createUserUseCase.call(displayName: displayName);
-      await fetchUsers(); 
+      await fetchUsers();
       return newUser;
     } catch (e) {
       _errorMessage = e.toString();

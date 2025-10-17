@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 import '../../domain/entities/contestant.dart';
 import '../providers/prediction_provider.dart';
 import '../providers/session_provider.dart';
+import '../widgets/voting/contestant_card.dart';
+import '../widgets/voting/unified_nomination_panel.dart';
 
 class PredictionScreen extends StatefulWidget {
   const PredictionScreen({super.key});
@@ -18,10 +21,15 @@ class _PredictionScreenState extends State<PredictionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentUser = Provider.of<SessionProvider>(context, listen: false).currentUser;
+      final currentUser = Provider.of<SessionProvider>(
+        context,
+        listen: false,
+      ).currentUser;
       if (currentUser != null) {
-        Provider.of<PredictionProvider>(context, listen: false)
-            .loadPredictionData(currentUser.id!); // Pass userId
+        Provider.of<PredictionProvider>(
+          context,
+          listen: false,
+        ).loadPredictionData(currentUser.id!);
       }
     });
   }
@@ -40,9 +48,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tu Predicción'),
-      ),
+      appBar: AppBar(title: const Text('Tu Predicción')),
       body: Consumer<PredictionProvider>(
         builder: (context, provider, child) {
           if (provider.state == PredictionState.loading) {
@@ -53,89 +59,42 @@ class _PredictionScreenState extends State<PredictionScreen> {
           }
           if (provider.activeGala == null) {
             return const Center(
-                child: Text('No hay gala activa para predecir.'));
+              child: Text('No hay gala activa para predecir.'),
+            );
           }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   'Gala ${provider.activeGala?.galaNumber ?? 'N/A'} - Apuestas Abiertas',
                   style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 // Sección "Eliminado"
-                _buildSectionTitle('Eliminado'),
-                // Only show if there are nominated contestants
+                _buildSectionTitle('Elige al Eliminado'),
                 if (provider.activeGala!.nominatedContestants.isNotEmpty)
-                  _buildEliminatedSelection(provider)
+                  _buildEliminatedSelection(context, provider)
                 else
                   const Text('No hay concursantes nominados para esta gala.'),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 // Sección "Favorito"
-                _buildSectionTitle('Favorito'),
-                _buildFavoriteSelection(provider),
-                const SizedBox(height: 20),
+                _buildSectionTitle('Elige al Favorito'),
+                _buildFavoriteSelection(context, provider),
+                const SizedBox(height: 24),
 
                 // Sección "Propuestos a Nominado"
-                _buildSectionTitle('Propuestos a Nominado (Selecciona hasta 4)'), // Changed text
-                _buildNomineeProposalsSelection(provider),
-                const SizedBox(height: 20),
+                _buildSectionTitle('Elige 4 Propuestos a Nominado'),
+                const UnifiedNominationPanel(),
+                const SizedBox(height: 32),
 
-                // Sección "Asigna a los Salvados" (condicional)
-                // Only show if 4 nominees are selected
-                if (provider.selectedNomineeProposals.length == 4)
-                  _buildSavedBySelection(provider),
-                const SizedBox(height: 20),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Botón "Guardar Borrador"
-                    ElevatedButton(
-                      onPressed: () async {
-                        final success = await provider.savePrediction(currentUser.id!, isFinalSubmission: false);
-                        if (!mounted) return;
-                        if (success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Borrador guardado con éxito!')),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(provider.errorMessage)),
-                          );
-                        }
-                      },
-                      child: const Text('Guardar Borrador'),
-                    ),
-
-                    // Botón "Guardar Predicción" (Envío Final)
-                    ElevatedButton(
-                      onPressed: provider.isValidPredictionForSubmission()
-                          ? () async {
-                              final success = await provider.savePrediction(currentUser.id!, isFinalSubmission: true);
-                              if (!mounted) return;
-                              if (success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Predicción enviada con éxito!')),
-                                );
-                                Navigator.of(context).pop(); // Go back to dashboard
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(provider.errorMessage)),
-                                );
-                              }
-                            }
-                          : null, // Disable button if prediction is not valid for submission
-                      child: const Text('Enviar Predicción'), // Changed text
-                    ),
-                  ],
-                ),
+                // Botones de acción
+                _buildActionButtons(context, provider, currentUser.id!),
               ],
             ),
           );
@@ -146,47 +105,59 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleLarge,
+        textAlign: TextAlign.left,
       ),
     );
   }
 
-  Widget _buildEliminatedSelection(PredictionProvider provider) {
-    final nominatedContestants = provider.activeGala?.nominatedContestants
-            .map((id) => provider.activeContestants
-                .firstWhere((c) => c.contestantId == id))
+  Widget _buildEliminatedSelection(
+    BuildContext context,
+    PredictionProvider provider,
+  ) {
+    final nominatedContestants =
+        provider.activeGala?.nominatedContestants
+            .map(
+              (id) => provider.activeContestants.firstWhereOrNull(
+                (c) => c.contestantId == id,
+              ),
+            )
+            .nonNulls
             .toList() ??
         [];
 
-    // This check is now handled in the main build method
-    // if (nominatedContestants.isEmpty) {
-    //   return const Text('No hay concursantes nominados para esta gala.');
-    // }
-
-    return Column(
-      children: nominatedContestants.map((contestant) {
-        return RadioListTile<Contestant>(
-          title: Text(contestant.name),
-          value: contestant,
-          groupValue: provider.selectedEliminated,
-          onChanged: (Contestant? value) {
-            if (value != null) {
-              provider.setSelectedEliminated(value);
-            }
-          },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: nominatedContestants.length,
+      itemBuilder: (context, index) {
+        final contestant = nominatedContestants[index];
+        return ContestantCard(
+          contestant: contestant,
+          isSelected: provider.selectedEliminated == contestant,
+          onTap: () => provider.setSelectedEliminated(contestant),
         );
-      }).toList(),
+      },
     );
   }
 
-  Widget _buildFavoriteSelection(PredictionProvider provider) {
-    // Filter out nominated contestants from the list of active contestants for the favorite selection
-    final List<String> nominatedIds = provider.activeGala?.nominatedContestants ?? [];
+  Widget _buildFavoriteSelection(
+    BuildContext context,
+    PredictionProvider provider,
+  ) {
+    final List<String> nominatedIds =
+        provider.activeGala?.nominatedContestants ?? [];
     final List<Contestant> selectableContestants = provider.activeContestants
-        .where((contestant) => !nominatedIds.contains(contestant.contestantId))
+        .where((c) => !nominatedIds.contains(c.contestantId))
         .toList();
 
     return GridView.builder(
@@ -196,209 +167,80 @@ class _PredictionScreenState extends State<PredictionScreen> {
         crossAxisCount: 3,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
-        childAspectRatio: 0.8,
+        childAspectRatio: 0.85,
       ),
       itemCount: selectableContestants.length,
       itemBuilder: (context, index) {
         final contestant = selectableContestants[index];
-        final isSelected = provider.selectedFavorite == contestant;
-        return GestureDetector(
+        return ContestantCard(
+          contestant: contestant,
+          isSelected: provider.selectedFavorite == contestant,
           onTap: () => provider.setSelectedFavorite(contestant),
-          child: Card(
-            color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.3) : null,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // TODO: Add actual image loading
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.grey.shade200,
-                  child: Text(contestant.name[0]),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  contestant.name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
   }
 
-  Widget _buildNomineeProposalsSelection(PredictionProvider provider) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: provider.activeContestants.length,
-      itemBuilder: (context, index) {
-        final contestant = provider.activeContestants[index];
-        final isSelected = provider.selectedNomineeProposals.contains(contestant);
-        return GestureDetector(
-          onTap: () => provider.toggleNomineeProposal(contestant),
-          child: Card(
-            color: isSelected ? Theme.of(context).primaryColor.withValues(alpha: 0.3) : null,
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.grey.shade200,
-                      child: Text(contestant.name[0]),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      contestant.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-                if (isSelected)
-                  const Positioned(
-                    top: 5,
-                    right: 5,
-                    child: Icon(Icons.check_circle, color: Colors.green),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSavedBySelection(PredictionProvider provider) {
-    final selectedNominees = provider.selectedNomineeProposals;
-
+  Widget _buildActionButtons(
+    BuildContext context,
+    PredictionProvider provider,
+    String userId,
+  ) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSectionTitle('Asigna a los Salvados'),
-        Text('Toca un concursante para asignarle un rol de salvado.', style: Theme.of(context).textTheme.bodySmall,),
-        const SizedBox(height: 10),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Two columns for easier selection
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 1.2,
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          itemCount: selectedNominees.length,
-          itemBuilder: (context, index) {
-            final contestant = selectedNominees[index];
-            final isSavedByProfessors = provider.savedByProfessors == contestant;
-            final isSavedByPeers = provider.savedByPeers == contestant;
-
-            Color? cardColor;
-            String? roleText;
-            if (isSavedByProfessors) {
-              cardColor = Colors.blue.withValues(alpha: 0.2);
-              roleText = 'Profesores';
-            } else if (isSavedByPeers) {
-              cardColor = Colors.green.withValues(alpha: 0.2);
-              roleText = 'Compañeros';
-            }
-
-            return GestureDetector(
-              onTap: () => _showRoleSelectionDialog(context, provider, contestant),
-              child: Card(
-                elevation: isSavedByProfessors || isSavedByPeers ? 4 : 1,
-                color: cardColor,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundColor: Colors.grey.shade200,
-                        child: Text(contestant.name[0]),
+          onPressed: provider.isValidPredictionForSubmission()
+              ? () async {
+                  final success = await provider.savePrediction(
+                    userId,
+                    isFinalSubmission: true,
+                  );
+                  if (!mounted) return;
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Predicción enviada con éxito!'),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        contestant.name,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                      if (roleText != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Salvado por $roleText',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: isSavedByProfessors ? Colors.blue : Colors.green,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+                    );
+                    Navigator.of(context).pop();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(provider.errorMessage)),
+                    );
+                  }
+                }
+              : null,
+          child: const Text('Enviar Predicción Final'),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () async {
+            final success = await provider.savePrediction(
+              userId,
+              isFinalSubmission: false,
             );
+            if (!mounted) return;
+            if (success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Borrador guardado con éxito!')),
+              );
+            } else {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(provider.errorMessage)));
+            }
           },
+          child: const Text('Guardar como Borrador'),
         ),
       ],
-    );
-  }
-
-  void _showRoleSelectionDialog(BuildContext context, PredictionProvider provider, Contestant contestant) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('Asignar rol a ${contestant.name}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('Salvado por Profesores'),
-                leading: const Icon(Icons.school),
-                onTap: () {
-                  provider.setSavedByProfessors(contestant);
-                  Navigator.of(dialogContext).pop();
-                },
-              ),
-              ListTile(
-                title: const Text('Salvado por Compañeros'),
-                leading: const Icon(Icons.people),
-                onTap: () {
-                  provider.setSavedByPeers(contestant);
-                  Navigator.of(dialogContext).pop();
-                },
-              ),
-              ListTile(
-                title: const Text('Ninguno'),
-                leading: const Icon(Icons.cancel),
-                onTap: () {
-                  // Clear both roles if this contestant had them
-                  if (provider.savedByProfessors == contestant) {
-                    provider.setSavedByProfessors(contestant); // Toggles off
-                  }
-                  if (provider.savedByPeers == contestant) {
-                    provider.setSavedByPeers(contestant); // Toggles off
-                  }
-                  Navigator.of(dialogContext).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

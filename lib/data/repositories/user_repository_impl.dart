@@ -10,17 +10,11 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<User> createUser({required String displayName}) async {
-    final userModel = UserModel(
-      displayName: displayName,
-      totalScore: 0,
-    );
-    final docRef =
-        await _firestore.collection('users').add(userModel.toFirestore());
-    return UserModel(
-      id: docRef.id,
-      displayName: displayName,
-      totalScore: 0,
-    );
+    final userModel = UserModel(displayName: displayName, totalScore: 0);
+    final docRef = await _firestore
+        .collection('users')
+        .add(userModel.toFirestore());
+    return UserModel(id: docRef.id, displayName: displayName, totalScore: 0);
   }
 
   @override

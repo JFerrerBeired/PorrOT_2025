@@ -40,10 +40,11 @@ class _GalaManagerState extends State<GalaManager> {
       setState(() {
         _isLoading = false;
       });
-      if (mounted) { // Fix context issue
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load galas: $e')),
-        );
+      if (mounted) {
+        // Fix context issue
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load galas: $e')));
       }
     }
   }
@@ -128,7 +129,8 @@ class _GalaManagerState extends State<GalaManager> {
           else
             ListView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // To work inside SingleChildScrollView
+              physics:
+                  const NeverScrollableScrollPhysics(), // To work inside SingleChildScrollView
               itemCount: _galas.length,
               itemBuilder: (context, index) {
                 final gala = _galas[index];

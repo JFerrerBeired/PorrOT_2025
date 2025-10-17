@@ -3,5 +3,9 @@ class User {
   final String displayName;
   final int totalScore;
 
-  User({this.id, required this.displayName, required this.totalScore}); // Update constructor
+  User({
+    this.id,
+    required this.displayName,
+    required this.totalScore,
+  }); // Update constructor
 }

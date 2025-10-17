@@ -15,7 +15,8 @@ class PredictionProvider with ChangeNotifier {
   final GetActiveContestantsUseCase _getActiveContestantsUseCase;
   final GetGalaDetailsUseCase _getGalaDetailsUseCase;
   final SubmitPredictionUseCase _submitPredictionUseCase;
-  final GetPredictionForGalaUseCase _getPredictionForGalaUseCase; // New dependency
+  final GetPredictionForGalaUseCase
+  _getPredictionForGalaUseCase; // New dependency
   final AppConfigProvider _appConfigProvider;
 
   PredictionProvider(
@@ -56,13 +57,15 @@ class PredictionProvider with ChangeNotifier {
   Contestant? _savedByPeers;
   Contestant? get savedByPeers => _savedByPeers;
 
-  Future<void> loadPredictionData(String userId) async { // userId added
+  Future<void> loadPredictionData(String userId) async {
+    // userId added
     try {
       _state = PredictionState.loading;
       notifyListeners();
 
       // Ensure active gala ID is loaded from Firestore if not already available
-      if (_appConfigProvider.activeGalaId == null || _appConfigProvider.activeGalaId!.isEmpty) {
+      if (_appConfigProvider.activeGalaId == null ||
+          _appConfigProvider.activeGalaId!.isEmpty) {
         await _appConfigProvider.loadActiveGalaId();
       }
 
@@ -73,26 +76,44 @@ class PredictionProvider with ChangeNotifier {
 
         // Load existing prediction
         if (_activeGala != null) {
-          _currentPrediction = await _getPredictionForGalaUseCase(userId, _activeGala!.galaId!); 
+          _currentPrediction = await _getPredictionForGalaUseCase(
+            userId,
+            _activeGala!.galaId!,
+          );
           if (_currentPrediction != null) {
             _selectedEliminated = _currentPrediction!.eliminatedId != null
-                ? _activeContestants.firstWhereOrNull((c) => c.contestantId == _currentPrediction!.eliminatedId)
+                ? _activeContestants.firstWhereOrNull(
+                    (c) => c.contestantId == _currentPrediction!.eliminatedId,
+                  )
                 : null;
             _selectedFavorite = _currentPrediction!.favoriteId != null
-                ? _activeContestants.firstWhereOrNull((c) => c.contestantId == _currentPrediction!.favoriteId)
+                ? _activeContestants.firstWhereOrNull(
+                    (c) => c.contestantId == _currentPrediction!.favoriteId,
+                  )
                 : null;
             _selectedNomineeProposals.clear();
             if (_currentPrediction!.nomineeProposalIds != null) {
-              for (var id in _currentPrediction!.nomineeProposalIds!) { // Added '!' back here
-                final contestant = _activeContestants.firstWhereOrNull((c) => c.contestantId == id);
-                if (contestant != null) _selectedNomineeProposals.add(contestant);
+              for (var id in _currentPrediction!.nomineeProposalIds!) {
+                // Added '!' back here
+                final contestant = _activeContestants.firstWhereOrNull(
+                  (c) => c.contestantId == id,
+                );
+                if (contestant != null) {
+                  _selectedNomineeProposals.add(contestant);
+                }
               }
             }
             _savedByProfessors = _currentPrediction!.savedByProfessorsId != null
-                ? _activeContestants.firstWhereOrNull((c) => c.contestantId == _currentPrediction!.savedByProfessorsId)
+                ? _activeContestants.firstWhereOrNull(
+                    (c) =>
+                        c.contestantId ==
+                        _currentPrediction!.savedByProfessorsId,
+                  )
                 : null;
             _savedByPeers = _currentPrediction!.savedByPeersId != null
-                ? _activeContestants.firstWhereOrNull((c) => c.contestantId == _currentPrediction!.savedByPeersId)
+                ? _activeContestants.firstWhereOrNull(
+                    (c) => c.contestantId == _currentPrediction!.savedByPeersId,
+                  )
                 : null;
           }
         }
@@ -170,7 +191,8 @@ class PredictionProvider with ChangeNotifier {
         _selectedNomineeProposals.length == 4 &&
         _savedByProfessors != null &&
         _savedByPeers != null &&
-        _savedByProfessors != _savedByPeers; // Ensure different contestants for roles
+        _savedByProfessors !=
+            _savedByPeers; // Ensure different contestants for roles
   }
 
   // Helper to create a Prediction object from current selections
@@ -180,15 +202,21 @@ class PredictionProvider with ChangeNotifier {
       galaId: _activeGala!.galaId!,
       favoriteId: _selectedFavorite?.contestantId,
       eliminatedId: _selectedEliminated?.contestantId,
-      nomineeProposalIds: _selectedNomineeProposals.map((c) => c.contestantId!).toList(),
+      nomineeProposalIds: _selectedNomineeProposals
+          .map((c) => c.contestantId!)
+          .toList(),
       savedByProfessorsId: _savedByProfessors?.contestantId,
       savedByPeersId: _savedByPeers?.contestantId,
       score: _currentPrediction?.score, // Preserve existing score if any
-      scoreBreakdown: _currentPrediction?.scoreBreakdown, // Preserve existing breakdown
+      scoreBreakdown:
+          _currentPrediction?.scoreBreakdown, // Preserve existing breakdown
     );
   }
 
-  Future<bool> savePrediction(String userId, {bool isFinalSubmission = false}) async {
+  Future<bool> savePrediction(
+    String userId, {
+    bool isFinalSubmission = false,
+  }) async {
     if (_activeGala == null) {
       _errorMessage = 'No hay gala activa para realizar la predicción.';
       _state = PredictionState.error;
@@ -197,7 +225,8 @@ class PredictionProvider with ChangeNotifier {
     }
 
     if (isFinalSubmission && !isValidPredictionForSubmission()) {
-      _errorMessage = 'Por favor, completa todos los campos de la predicción para el envío final.';
+      _errorMessage =
+          'Por favor, completa todos los campos de la predicción para el envío final.';
       _state = PredictionState.error;
       notifyListeners();
       return false;
@@ -209,7 +238,8 @@ class PredictionProvider with ChangeNotifier {
 
       final predictionToSave = _buildCurrentPrediction(userId);
       await _submitPredictionUseCase(predictionToSave);
-      _currentPrediction = predictionToSave; // Update current prediction after saving
+      _currentPrediction =
+          predictionToSave; // Update current prediction after saving
 
       _state = PredictionState.loaded; // Or a success state
       notifyListeners();

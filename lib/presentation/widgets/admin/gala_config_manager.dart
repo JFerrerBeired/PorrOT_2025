@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/entities/gala.dart';
 import '../../providers/app_config_provider.dart';
-import '../../providers/gala_manager_provider.dart'; 
+import '../../providers/gala_manager_provider.dart';
 
 class GalaConfigManager extends StatefulWidget {
   const GalaConfigManager({super.key});
@@ -19,10 +19,16 @@ class _GalaConfigManagerState extends State<GalaConfigManager> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GalaManagerProvider>(context, listen: false).loadGalas();
-      Provider.of<AppConfigProvider>(context, listen: false).loadActiveGalaId().then((_) {
-        if (mounted) { 
+      Provider.of<AppConfigProvider>(
+        context,
+        listen: false,
+      ).loadActiveGalaId().then((_) {
+        if (mounted) {
           setState(() {
-            _selectedGalaId = Provider.of<AppConfigProvider>(context, listen: false).activeGalaId;
+            _selectedGalaId = Provider.of<AppConfigProvider>(
+              context,
+              listen: false,
+            ).activeGalaId;
           });
         }
       });
@@ -33,19 +39,24 @@ class _GalaConfigManagerState extends State<GalaConfigManager> {
   Widget build(BuildContext context) {
     return Consumer2<GalaManagerProvider, AppConfigProvider>(
       builder: (context, galaProvider, appConfigProvider, child) {
-        if (galaProvider.state == GalaManagerState.loading || appConfigProvider.state == AppConfigState.loading) {
+        if (galaProvider.state == GalaManagerState.loading ||
+            appConfigProvider.state == AppConfigState.loading) {
           return const Center(child: CircularProgressIndicator());
         }
         if (galaProvider.state == GalaManagerState.error) {
-          return Center(child: Text('Error loading galas: ${galaProvider.errorMessage}'));
+          return Center(
+            child: Text('Error loading galas: ${galaProvider.errorMessage}'),
+          );
         }
         if (appConfigProvider.state == AppConfigState.error) {
-          return Center(child: Text('Error loading app config: ${appConfigProvider.errorMessage}'));
+          return Center(
+            child: Text(
+              'Error loading app config: ${appConfigProvider.errorMessage}',
+            ),
+          );
         }
 
         final List<Gala> allGalas = galaProvider.galas;
-
-
 
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -82,15 +93,23 @@ class _GalaConfigManagerState extends State<GalaConfigManager> {
               ElevatedButton(
                 onPressed: _selectedGalaId != null
                     ? () async {
-                        final success = await appConfigProvider.setActiveGalaId(_selectedGalaId!); 
-                        if (mounted) { 
+                        final success = await appConfigProvider.setActiveGalaId(
+                          _selectedGalaId!,
+                        );
+                        if (mounted) {
                           if (success) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Gala activa actualizada con éxito!')),
+                              const SnackBar(
+                                content: Text(
+                                  'Gala activa actualizada con éxito!',
+                                ),
+                              ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(appConfigProvider.errorMessage)),
+                              SnackBar(
+                                content: Text(appConfigProvider.errorMessage),
+                              ),
                             );
                           }
                         }

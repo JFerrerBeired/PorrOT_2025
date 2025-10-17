@@ -1,7 +1,8 @@
 enum ContestantStatus { active, nominated, eliminated, winner }
 
 class Contestant {
-  final String? contestantId; // ID is now optional and handled by the data layer
+  final String?
+  contestantId; // ID is now optional and handled by the data layer
   final String name;
   final String? photoUrl; // photoUrl is now optional
   final ContestantStatus status;

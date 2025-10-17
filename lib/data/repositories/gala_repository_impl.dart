@@ -17,7 +17,7 @@ class GalaRepositoryImpl implements GalaRepository {
       nominatedContestants: gala.nominatedContestants,
       results: gala.results,
     );
-    
+
     // If galaId is null, auto-generate one using Firestore's document ID
     if (gala.galaId == null) {
       await _firestore.collection('galas').add(galaModel.toFirestore());
@@ -55,7 +55,7 @@ class GalaRepositoryImpl implements GalaRepository {
       nominatedContestants: gala.nominatedContestants,
       results: gala.results,
     );
-    
+
     // Use the existing ID if available
     if (gala.galaId != null) {
       await _firestore

@@ -35,9 +35,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -68,7 +66,8 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               PredictionRepositoryImpl(context.read<FirebaseFirestore>()),
         ),
-        Provider<AppConfigRepository>( // New AppConfigRepository
+        Provider<AppConfigRepository>(
+          // New AppConfigRepository
           create: (context) =>
               AppConfigRepositoryImpl(context.read<FirebaseFirestore>()),
         ),
@@ -83,8 +82,10 @@ class MyApp extends StatelessWidget {
         ),
 
         // Gala Use Cases
-        Provider<GetAllGalasUseCase>( // New GetAllGalasUseCase
-          create: (context) => GetAllGalasUseCase(context.read<GalaRepository>()),
+        Provider<GetAllGalasUseCase>(
+          // New GetAllGalasUseCase
+          create: (context) =>
+              GetAllGalasUseCase(context.read<GalaRepository>()),
         ),
         Provider<GetGalaDetailsUseCase>(
           create: (context) =>
@@ -92,11 +93,15 @@ class MyApp extends StatelessWidget {
         ),
 
         // AppConfig Use Cases
-        Provider<GetActiveGalaIdUseCase>( // New GetActiveGalaIdUseCase
-          create: (context) => GetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
+        Provider<GetActiveGalaIdUseCase>(
+          // New GetActiveGalaIdUseCase
+          create: (context) =>
+              GetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
         ),
-        Provider<SetActiveGalaIdUseCase>( // New SetActiveGalaIdUseCase
-          create: (context) => SetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
+        Provider<SetActiveGalaIdUseCase>(
+          // New SetActiveGalaIdUseCase
+          create: (context) =>
+              SetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
         ),
 
         // Prediction Use Cases
@@ -108,7 +113,8 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               SubmitPredictionUseCase(context.read<PredictionRepository>()),
         ),
-        Provider<GetPredictionForGalaUseCase>( // New GetPredictionForGalaUseCase
+        Provider<GetPredictionForGalaUseCase>(
+          // New GetPredictionForGalaUseCase
           create: (context) =>
               GetPredictionForGalaUseCase(context.read<PredictionRepository>()),
         ),
@@ -123,16 +129,17 @@ class MyApp extends StatelessWidget {
             context.read<CreateUserUseCase>(),
           ),
         ),
-        ChangeNotifierProvider<AppConfigProvider>( // New AppConfigProvider
+        ChangeNotifierProvider<AppConfigProvider>(
+          // New AppConfigProvider
           create: (context) => AppConfigProvider(
             context.read<GetActiveGalaIdUseCase>(),
             context.read<SetActiveGalaIdUseCase>(),
           ),
         ),
-        ChangeNotifierProvider<GalaManagerProvider>( // New GalaManagerProvider
-          create: (context) => GalaManagerProvider(
-            context.read<GetAllGalasUseCase>(),
-          ),
+        ChangeNotifierProvider<GalaManagerProvider>(
+          // New GalaManagerProvider
+          create: (context) =>
+              GalaManagerProvider(context.read<GetAllGalasUseCase>()),
         ),
         ChangeNotifierProvider<PredictionProvider>(
           create: (context) => PredictionProvider(
@@ -147,20 +154,22 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'PorrOT 2025',
         theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            useMaterial3: true,
-            textTheme: const TextTheme(
-              headlineMedium: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            )),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+          textTheme: const TextTheme(
+            headlineMedium: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ),
         home: const PlayerSelectionScreen(),
         routes: {
           DashboardScreen.routeName: (ctx) => const DashboardScreen(),
           PredictionScreen.routeName: (ctx) => const PredictionScreen(),
-          AdminPanelScreen.routeName: (ctx) => const AdminPanelScreen(), // Use actual screen
+          AdminPanelScreen.routeName: (ctx) =>
+              const AdminPanelScreen(), // Use actual screen
         },
       ),
     );

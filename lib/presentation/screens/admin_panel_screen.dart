@@ -23,11 +23,13 @@ class AdminPanelScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(children: [
-          ContestantManager(),
-          GalaManager(),
-          GalaConfigManager(), // New widget
-        ]),
+        body: const TabBarView(
+          children: [
+            ContestantManager(),
+            GalaManager(),
+            GalaConfigManager(), // New widget
+          ],
+        ),
       ),
     );
   }

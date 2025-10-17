@@ -25,9 +25,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('PorrOT 2025 - Selecciona tu Perfil'),
-      ),
+      appBar: AppBar(title: const Text('PorrOT 2025 - Selecciona tu Perfil')),
       body: Consumer<PlayerSelectionProvider>(
         builder: (context, provider, child) {
           switch (provider.state) {
@@ -43,10 +41,13 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                   return ListTile(
                     title: Text(user.displayName),
                     onTap: () {
-                      Provider.of<SessionProvider>(context, listen: false)
-                          .setUser(user);
-                      Navigator.of(context)
-                          .pushReplacementNamed(DashboardScreen.routeName);
+                      Provider.of<SessionProvider>(
+                        context,
+                        listen: false,
+                      ).setUser(user);
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed(DashboardScreen.routeName);
                     },
                   );
                 },
@@ -86,19 +87,29 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               onPressed: () async {
                 final name = nameController.text.trim();
                 if (name.isNotEmpty) {
-                  final playerProvider = Provider.of<PlayerSelectionProvider>(context, listen: false);
-                  final sessionProvider = Provider.of<SessionProvider>(context, listen: false);
-                  
+                  final playerProvider = Provider.of<PlayerSelectionProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final sessionProvider = Provider.of<SessionProvider>(
+                    context,
+                    listen: false,
+                  );
+
                   Navigator.of(dialogContext).pop();
 
                   final newUser = await playerProvider.createUser(name);
                   if (!mounted) return; // Add this check
                   if (newUser != null) {
                     sessionProvider.setUser(newUser);
-                    Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
+                    Navigator.of(
+                      context,
+                    ).pushReplacementNamed(DashboardScreen.routeName);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Error al crear el usuario.')),
+                      const SnackBar(
+                        content: Text('Error al crear el usuario.'),
+                      ),
                     );
                   }
                 }
