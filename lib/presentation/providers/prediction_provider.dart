@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
-import 'package:collection/collection.dart'; // New import for firstWhereOrNull
+import 'package:collection/collection.dart';
 import '../../domain/entities/contestant.dart';
 import '../../domain/entities/gala.dart';
 import '../../domain/entities/prediction.dart';
 import '../../domain/usecases/get_active_contestants_usecase.dart';
 import '../../domain/usecases/get_gala_details_usecase.dart';
-import '../../domain/usecases/get_prediction_for_gala_usecase.dart'; // New import
+import '../../domain/usecases/get_prediction_for_gala_usecase.dart';
 import '../../domain/usecases/submit_prediction_usecase.dart';
-import '../providers/app_config_provider.dart'; // New import
+import '../providers/app_config_provider.dart';
 
 enum PredictionState { initial, loading, loaded, error }
 
@@ -15,19 +15,18 @@ class PredictionProvider with ChangeNotifier {
   final GetActiveContestantsUseCase _getActiveContestantsUseCase;
   final GetGalaDetailsUseCase _getGalaDetailsUseCase;
   final SubmitPredictionUseCase _submitPredictionUseCase;
-  final GetPredictionForGalaUseCase
-  _getPredictionForGalaUseCase; // New dependency
+  final GetPredictionForGalaUseCase _getPredictionForGalaUseCase;
   final AppConfigProvider _appConfigProvider;
 
   PredictionProvider(
     this._getActiveContestantsUseCase,
     this._getGalaDetailsUseCase,
     this._submitPredictionUseCase,
-    this._getPredictionForGalaUseCase, // New dependency
+    this._getPredictionForGalaUseCase,
     this._appConfigProvider,
   );
 
-  Prediction? _currentPrediction; // New field
+  Prediction? _currentPrediction;
 
   PredictionState _state = PredictionState.initial;
   PredictionState get state => _state;
@@ -58,7 +57,6 @@ class PredictionProvider with ChangeNotifier {
   Contestant? get savedByPeers => _savedByPeers;
 
   Future<void> loadPredictionData(String userId) async {
-    // userId added
     try {
       _state = PredictionState.loading;
       notifyListeners();
@@ -94,7 +92,6 @@ class PredictionProvider with ChangeNotifier {
             _selectedNomineeProposals.clear();
             if (_currentPrediction!.nomineeProposalIds != null) {
               for (var id in _currentPrediction!.nomineeProposalIds!) {
-                // Added '!' back here
                 final contestant = _activeContestants.firstWhereOrNull(
                   (c) => c.contestantId == id,
                 );

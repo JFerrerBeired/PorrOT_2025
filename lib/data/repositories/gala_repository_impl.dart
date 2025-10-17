@@ -20,7 +20,9 @@ class GalaRepositoryImpl implements GalaRepository {
 
     // If galaId is null, auto-generate one using Firestore's document ID
     if (gala.galaId == null) {
-      final docRef = await _firestore.collection('galas').add(galaModel.toFirestore());
+      final docRef = await _firestore
+          .collection('galas')
+          .add(galaModel.toFirestore());
       return docRef.id;
     } else {
       await _firestore
@@ -68,7 +70,10 @@ class GalaRepositoryImpl implements GalaRepository {
   }
 
   @override
-  Future<void> updateGalaNominees(String galaId, List<String> nominatedContestantIds) async {
+  Future<void> updateGalaNominees(
+    String galaId,
+    List<String> nominatedContestantIds,
+  ) async {
     await _firestore.collection('galas').doc(galaId).update({
       'nominatedContestants': nominatedContestantIds,
     });

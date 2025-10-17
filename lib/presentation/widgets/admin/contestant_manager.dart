@@ -32,7 +32,9 @@ class _ContestantManagerState extends State<ContestantManager> {
       FirebaseFirestore.instance,
     );
     _createContestantUseCase = CreateContestantUseCase(_contestantRepository);
-    _updateContestantStatusUseCase = UpdateContestantStatusUseCase(_contestantRepository);
+    _updateContestantStatusUseCase = UpdateContestantStatusUseCase(
+      _contestantRepository,
+    );
     _loadContestants();
   }
 
@@ -89,8 +91,13 @@ class _ContestantManagerState extends State<ContestantManager> {
     }
   }
 
-  Future<void> _updateContestantStatus(String contestantId, bool isActive) async {
-    final newStatus = isActive ? ContestantStatus.active : ContestantStatus.eliminated;
+  Future<void> _updateContestantStatus(
+    String contestantId,
+    bool isActive,
+  ) async {
+    final newStatus = isActive
+        ? ContestantStatus.active
+        : ContestantStatus.eliminated;
     try {
       await _updateContestantStatusUseCase.execute(contestantId, newStatus);
       if (mounted) {
@@ -101,9 +108,9 @@ class _ContestantManagerState extends State<ContestantManager> {
       _loadContestants();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update status: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
       }
     }
   }

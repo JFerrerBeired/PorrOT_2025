@@ -49,7 +49,9 @@ class ContestantCard extends StatelessWidget {
                 color: Colors.grey.shade200,
               ),
               child: ClipOval(
-                child: contestant.photoUrl != null && contestant.photoUrl!.isNotEmpty
+                child:
+                    contestant.photoUrl != null &&
+                        contestant.photoUrl!.isNotEmpty
                     ? Image.network(
                         contestant.photoUrl!,
                         width: 60,
@@ -59,7 +61,9 @@ class ContestantCard extends StatelessWidget {
                           // Show initial if image fails to load
                           return Center(
                             child: Text(
-                              contestant.name.isNotEmpty ? contestant.name[0] : '?',
+                              contestant.name.isNotEmpty
+                                  ? contestant.name[0]
+                                  : '?',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -72,7 +76,9 @@ class ContestantCard extends StatelessWidget {
                           // Show initial while loading
                           return Center(
                             child: Text(
-                              contestant.name.isNotEmpty ? contestant.name[0] : '?',
+                              contestant.name.isNotEmpty
+                                  ? contestant.name[0]
+                                  : '?',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,

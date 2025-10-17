@@ -3,27 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
-import 'data/repositories/app_config_repository_impl.dart'; // New import
+import 'data/repositories/app_config_repository_impl.dart';
 import 'data/repositories/contestant_repository_impl.dart';
 import 'data/repositories/gala_repository_impl.dart';
 import 'data/repositories/prediction_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
-import 'domain/repositories/app_config_repository.dart'; // New import
+import 'domain/repositories/app_config_repository.dart';
 import 'domain/repositories/contestant_repository.dart';
 import 'domain/repositories/gala_repository.dart';
 import 'domain/repositories/prediction_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'domain/usecases/create_user_usecase.dart';
 import 'domain/usecases/get_active_contestants_usecase.dart';
-import 'domain/usecases/get_active_gala_id_usecase.dart'; // New import
-import 'domain/usecases/get_all_galas_usecase.dart'; // New import
+import 'domain/usecases/get_active_gala_id_usecase.dart';
+import 'domain/usecases/get_all_galas_usecase.dart';
 import 'domain/usecases/get_gala_details_usecase.dart';
-import 'domain/usecases/get_prediction_for_gala_usecase.dart'; // New import
+import 'domain/usecases/get_prediction_for_gala_usecase.dart';
 import 'domain/usecases/get_users_usecase.dart';
-import 'domain/usecases/set_active_gala_id_usecase.dart'; // New import
+import 'domain/usecases/set_active_gala_id_usecase.dart';
 import 'domain/usecases/submit_prediction_usecase.dart';
-import 'presentation/providers/app_config_provider.dart'; // New import
-import 'presentation/providers/gala_manager_provider.dart'; // New import
+import 'presentation/providers/app_config_provider.dart';
+import 'presentation/providers/gala_manager_provider.dart';
 import 'presentation/providers/player_selection_provider.dart';
 import 'presentation/providers/prediction_provider.dart';
 import 'presentation/providers/session_provider.dart';
@@ -67,7 +67,6 @@ class MyApp extends StatelessWidget {
               PredictionRepositoryImpl(context.read<FirebaseFirestore>()),
         ),
         Provider<AppConfigRepository>(
-          // New AppConfigRepository
           create: (context) =>
               AppConfigRepositoryImpl(context.read<FirebaseFirestore>()),
         ),
@@ -83,7 +82,6 @@ class MyApp extends StatelessWidget {
 
         // Gala Use Cases
         Provider<GetAllGalasUseCase>(
-          // New GetAllGalasUseCase
           create: (context) =>
               GetAllGalasUseCase(context.read<GalaRepository>()),
         ),
@@ -94,12 +92,10 @@ class MyApp extends StatelessWidget {
 
         // AppConfig Use Cases
         Provider<GetActiveGalaIdUseCase>(
-          // New GetActiveGalaIdUseCase
           create: (context) =>
               GetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
         ),
         Provider<SetActiveGalaIdUseCase>(
-          // New SetActiveGalaIdUseCase
           create: (context) =>
               SetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
         ),
@@ -114,7 +110,6 @@ class MyApp extends StatelessWidget {
               SubmitPredictionUseCase(context.read<PredictionRepository>()),
         ),
         Provider<GetPredictionForGalaUseCase>(
-          // New GetPredictionForGalaUseCase
           create: (context) =>
               GetPredictionForGalaUseCase(context.read<PredictionRepository>()),
         ),
@@ -130,14 +125,12 @@ class MyApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider<AppConfigProvider>(
-          // New AppConfigProvider
           create: (context) => AppConfigProvider(
             context.read<GetActiveGalaIdUseCase>(),
             context.read<SetActiveGalaIdUseCase>(),
           ),
         ),
         ChangeNotifierProvider<GalaManagerProvider>(
-          // New GalaManagerProvider
           create: (context) =>
               GalaManagerProvider(context.read<GetAllGalasUseCase>()),
         ),
@@ -146,7 +139,7 @@ class MyApp extends StatelessWidget {
             context.read<GetActiveContestantsUseCase>(),
             context.read<GetGalaDetailsUseCase>(),
             context.read<SubmitPredictionUseCase>(),
-            context.read<GetPredictionForGalaUseCase>(), // New dependency
+            context.read<GetPredictionForGalaUseCase>(),
             context.read<AppConfigProvider>(),
           ),
         ),

@@ -32,10 +32,14 @@ class _NomineeSelectionWidgetState extends State<NomineeSelectionWidget> {
   Future<void> _loadActiveContestants() async {
     try {
       // In a real app, use a use case for this
-      final contestantRepository = ContestantRepositoryImpl(FirebaseFirestore.instance);
+      final contestantRepository = ContestantRepositoryImpl(
+        FirebaseFirestore.instance,
+      );
       final allContestants = await contestantRepository.getAllContestants();
       setState(() {
-        _activeContestants = allContestants.where((c) => c.status == ContestantStatus.active).toList();
+        _activeContestants = allContestants
+            .where((c) => c.status == ContestantStatus.active)
+            .toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -68,16 +72,19 @@ class _NomineeSelectionWidgetState extends State<NomineeSelectionWidget> {
       return;
     }
 
-    _updateGalaNomineesUseCase.execute(widget.galaId, _selectedContestantIds).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nominations saved successfully!')),
-      );
-      Navigator.of(context).pop();
-    }).catchError((e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save nominations: $e')),
-      );
-    });
+    _updateGalaNomineesUseCase
+        .execute(widget.galaId, _selectedContestantIds)
+        .then((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Nominations saved successfully!')),
+          );
+          Navigator.of(context).pop();
+        })
+        .catchError((e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save nominations: $e')),
+          );
+        });
   }
 
   @override
@@ -91,7 +98,9 @@ class _NomineeSelectionWidgetState extends State<NomineeSelectionWidget> {
                 children: _activeContestants.map((contestant) {
                   return CheckboxListTile(
                     title: Text(contestant.name),
-                    value: _selectedContestantIds.contains(contestant.contestantId),
+                    value: _selectedContestantIds.contains(
+                      contestant.contestantId,
+                    ),
                     onChanged: (bool? selected) {
                       _onContestantSelected(selected, contestant.contestantId!);
                     },
@@ -104,10 +113,7 @@ class _NomineeSelectionWidgetState extends State<NomineeSelectionWidget> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _saveNominations,
-          child: const Text('Save'),
-        ),
+        ElevatedButton(onPressed: _saveNominations, child: const Text('Save')),
       ],
     );
   }

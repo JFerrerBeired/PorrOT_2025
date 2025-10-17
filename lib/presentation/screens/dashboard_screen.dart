@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 import 'player_selection_screen.dart';
-import 'prediction_screen.dart'; // New import
-import 'admin_panel_screen.dart'; // New import
+import 'prediction_screen.dart';
+import 'admin_panel_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -30,7 +30,6 @@ class DashboardScreen extends StatelessWidget {
             },
           ),
           IconButton(
-            // New Admin Button
             icon: const Icon(Icons.admin_panel_settings),
             tooltip: 'Admin Panel',
             onPressed: () {

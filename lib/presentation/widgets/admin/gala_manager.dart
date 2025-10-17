@@ -29,9 +29,13 @@ class _GalaManagerState extends State<GalaManager> {
     super.initState();
     // In a real app, use dependency injection
     _galaRepository = GalaRepositoryImpl(FirebaseFirestore.instance);
-    final predictionRepository = PredictionRepositoryImpl(FirebaseFirestore.instance);
+    final predictionRepository = PredictionRepositoryImpl(
+      FirebaseFirestore.instance,
+    );
     _createGalaUseCase = CreateGalaUseCase(_galaRepository);
-    _getPredictionCountForGalaUseCase = GetPredictionCountForGalaUseCase(predictionRepository);
+    _getPredictionCountForGalaUseCase = GetPredictionCountForGalaUseCase(
+      predictionRepository,
+    );
     _loadGalas();
   }
 
@@ -163,7 +167,8 @@ class _GalaManagerState extends State<GalaManager> {
                         FutureBuilder<int>(
                           future: _getPredictionCount(gala.galaId!),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const CircularProgressIndicator();
                             }
                             if (snapshot.hasError) {
@@ -177,7 +182,8 @@ class _GalaManagerState extends State<GalaManager> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.people),
-                          onPressed: () => _showNomineeSelectionDialog(gala.galaId!),
+                          onPressed: () =>
+                              _showNomineeSelectionDialog(gala.galaId!),
                         ),
                       ],
                     ),

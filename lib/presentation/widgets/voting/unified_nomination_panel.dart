@@ -98,7 +98,9 @@ class UnifiedNominationPanel extends StatelessWidget {
                 color: Colors.grey.shade200,
               ),
               child: ClipOval(
-                child: contestant.photoUrl != null && contestant.photoUrl!.isNotEmpty
+                child:
+                    contestant.photoUrl != null &&
+                        contestant.photoUrl!.isNotEmpty
                     ? Image.network(
                         contestant.photoUrl!,
                         width: 40,
