@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 import 'player_selection_screen.dart'; 
 import 'prediction_screen.dart'; // New import
+import 'admin_panel_screen.dart'; // New import
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -25,6 +26,13 @@ class DashboardScreen extends StatelessWidget {
               sessionProvider.clearSession();
               Navigator.of(context)
                   .pushReplacementNamed(PlayerSelectionScreen.routeName);
+            },
+          ),
+          IconButton( // New Admin Button
+            icon: const Icon(Icons.admin_panel_settings),
+            tooltip: 'Admin Panel',
+            onPressed: () {
+              Navigator.of(context).pushNamed(AdminPanelScreen.routeName);
             },
           ),
         ],

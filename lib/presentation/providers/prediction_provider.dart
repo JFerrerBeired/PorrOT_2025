@@ -5,6 +5,7 @@ import '../../domain/entities/prediction.dart';
 import '../../domain/usecases/get_active_contestants_usecase.dart';
 import '../../domain/usecases/get_gala_details_usecase.dart';
 import '../../domain/usecases/submit_prediction_usecase.dart';
+import '../providers/app_config_provider.dart'; // New import
 
 enum PredictionState { initial, loading, loaded, error }
 
@@ -12,11 +13,13 @@ class PredictionProvider with ChangeNotifier {
   final GetActiveContestantsUseCase _getActiveContestantsUseCase;
   final GetGalaDetailsUseCase _getGalaDetailsUseCase;
   final SubmitPredictionUseCase _submitPredictionUseCase;
+  final AppConfigProvider _appConfigProvider; // New dependency
 
   PredictionProvider(
     this._getActiveContestantsUseCase,
     this._getGalaDetailsUseCase,
     this._submitPredictionUseCase,
+    this._appConfigProvider, // New dependency
   );
 
   PredictionState _state = PredictionState.initial;
@@ -53,7 +56,12 @@ class PredictionProvider with ChangeNotifier {
       notifyListeners();
 
       _activeContestants = await _getActiveContestantsUseCase();
-      _activeGala = await _getGalaDetailsUseCase(galaId);
+      final activeGalaId = _appConfigProvider.activeGalaId;
+      if (activeGalaId != null && activeGalaId.isNotEmpty) {
+        _activeGala = await _getGalaDetailsUseCase(activeGalaId);
+      } else {
+        _activeGala = null; // No active gala set
+      }
 
       // TODO: If there's an existing prediction for this user/gala, load it here.
 

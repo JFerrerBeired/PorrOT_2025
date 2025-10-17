@@ -3,25 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
+import 'data/repositories/app_config_repository_impl.dart'; // New import
 import 'data/repositories/contestant_repository_impl.dart';
 import 'data/repositories/gala_repository_impl.dart';
 import 'data/repositories/prediction_repository_impl.dart';
 import 'data/repositories/user_repository_impl.dart';
+import 'domain/repositories/app_config_repository.dart'; // New import
 import 'domain/repositories/contestant_repository.dart';
 import 'domain/repositories/gala_repository.dart';
 import 'domain/repositories/prediction_repository.dart';
 import 'domain/repositories/user_repository.dart';
 import 'domain/usecases/create_user_usecase.dart';
 import 'domain/usecases/get_active_contestants_usecase.dart';
+import 'domain/usecases/get_active_gala_id_usecase.dart'; // New import
+import 'domain/usecases/get_all_galas_usecase.dart'; // New import
 import 'domain/usecases/get_gala_details_usecase.dart';
 import 'domain/usecases/get_users_usecase.dart';
+import 'domain/usecases/set_active_gala_id_usecase.dart'; // New import
 import 'domain/usecases/submit_prediction_usecase.dart';
+import 'presentation/providers/app_config_provider.dart'; // New import
+import 'presentation/providers/gala_manager_provider.dart'; // New import
 import 'presentation/providers/player_selection_provider.dart';
 import 'presentation/providers/prediction_provider.dart';
 import 'presentation/providers/session_provider.dart';
 import 'presentation/screens/dashboard_screen.dart';
 import 'presentation/screens/player_selection_screen.dart';
 import 'presentation/screens/prediction_screen.dart';
+import 'presentation/screens/admin_panel_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -59,6 +67,10 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               PredictionRepositoryImpl(context.read<FirebaseFirestore>()),
         ),
+        Provider<AppConfigRepository>( // New AppConfigRepository
+          create: (context) =>
+              AppConfigRepositoryImpl(context.read<FirebaseFirestore>()),
+        ),
 
         // User Use Cases
         Provider<GetUsersUseCase>(
@@ -69,14 +81,27 @@ class MyApp extends StatelessWidget {
               CreateUserUseCase(context.read<UserRepository>()),
         ),
 
-        // Prediction Use Cases
-        Provider<GetActiveContestantsUseCase>(
-          create: (context) =>
-              GetActiveContestantsUseCase(context.read<ContestantRepository>()),
+        // Gala Use Cases
+        Provider<GetAllGalasUseCase>( // New GetAllGalasUseCase
+          create: (context) => GetAllGalasUseCase(context.read<GalaRepository>()),
         ),
         Provider<GetGalaDetailsUseCase>(
           create: (context) =>
               GetGalaDetailsUseCase(context.read<GalaRepository>()),
+        ),
+
+        // AppConfig Use Cases
+        Provider<GetActiveGalaIdUseCase>( // New GetActiveGalaIdUseCase
+          create: (context) => GetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
+        ),
+        Provider<SetActiveGalaIdUseCase>( // New SetActiveGalaIdUseCase
+          create: (context) => SetActiveGalaIdUseCase(context.read<AppConfigRepository>()),
+        ),
+
+        // Prediction Use Cases
+        Provider<GetActiveContestantsUseCase>(
+          create: (context) =>
+              GetActiveContestantsUseCase(context.read<ContestantRepository>()),
         ),
         Provider<SubmitPredictionUseCase>(
           create: (context) =>
@@ -93,11 +118,23 @@ class MyApp extends StatelessWidget {
             context.read<CreateUserUseCase>(),
           ),
         ),
+        ChangeNotifierProvider<AppConfigProvider>( // New AppConfigProvider
+          create: (context) => AppConfigProvider(
+            context.read<GetActiveGalaIdUseCase>(),
+            context.read<SetActiveGalaIdUseCase>(),
+          ),
+        ),
+        ChangeNotifierProvider<GalaManagerProvider>( // New GalaManagerProvider
+          create: (context) => GalaManagerProvider(
+            context.read<GetAllGalasUseCase>(),
+          ),
+        ),
         ChangeNotifierProvider<PredictionProvider>(
           create: (context) => PredictionProvider(
             context.read<GetActiveContestantsUseCase>(),
             context.read<GetGalaDetailsUseCase>(),
             context.read<SubmitPredictionUseCase>(),
+            context.read<AppConfigProvider>(), // New dependency
           ),
         ),
       ],
@@ -117,7 +154,7 @@ class MyApp extends StatelessWidget {
         routes: {
           DashboardScreen.routeName: (ctx) => const DashboardScreen(),
           PredictionScreen.routeName: (ctx) => const PredictionScreen(),
-          '/admin': (ctx) => const Center(child: Text("Admin Panel Placeholder"))
+          AdminPanelScreen.routeName: (ctx) => const AdminPanelScreen(), // Use actual screen
         },
       ),
     );
