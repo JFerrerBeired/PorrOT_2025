@@ -8,4 +8,16 @@ class User {
     required this.displayName,
     required this.totalScore,
   }); // Update constructor
+
+  User copyWith({
+    String? id,
+    String? displayName,
+    int? totalScore,
+  }) {
+    return User(
+      id: id ?? this.id,
+      displayName: displayName ?? this.displayName,
+      totalScore: totalScore ?? this.totalScore,
+    );
+  }
 }

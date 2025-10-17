@@ -5,6 +5,7 @@ import 'package:porrot_2025/data/repositories/prediction_repository_impl.dart';
 import 'package:porrot_2025/domain/entities/gala.dart';
 import 'package:porrot_2025/domain/usecases/create_gala_usecase.dart';
 import 'package:porrot_2025/domain/usecases/get_prediction_count_for_gala_usecase.dart';
+import 'package:porrot_2025/presentation/screens/admin_gala_results_screen.dart';
 import 'package:porrot_2025/presentation/widgets/admin/nominee_selection_widget.dart';
 
 class GalaManager extends StatefulWidget {
@@ -184,6 +185,17 @@ class _GalaManagerState extends State<GalaManager> {
                           icon: const Icon(Icons.people),
                           onPressed: () =>
                               _showNomineeSelectionDialog(gala.galaId!),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AdminGalaResultsScreen(gala: gala),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
