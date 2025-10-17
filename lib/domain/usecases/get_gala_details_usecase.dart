@@ -6,7 +6,7 @@ class GetGalaDetailsUseCase {
 
   GetGalaDetailsUseCase(this.galaRepository);
 
-  Future<Gala> call(String galaId) {
+  Future<Gala?> call(String galaId) {
     return galaRepository.getGalaById(galaId);
   }
 }

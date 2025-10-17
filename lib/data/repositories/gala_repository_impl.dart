@@ -38,9 +38,12 @@ class GalaRepositoryImpl implements GalaRepository {
   }
 
   @override
-  Future<Gala> getGalaById(String id) async {
+  Future<Gala?> getGalaById(String id) async {
     final doc = await _firestore.collection('galas').doc(id).get();
-    return GalaModel.fromFirestore(doc.data()!, doc.id);
+    if (doc.exists && doc.data() != null) {
+      return GalaModel.fromFirestore(doc.data()!, doc.id);
+    }
+    return null;
   }
 
   @override

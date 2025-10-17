@@ -61,7 +61,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Gala ${provider.activeGala!.galaNumber} - Apuestas Abiertas',
+                  'Gala ${provider.activeGala?.galaNumber ?? 'N/A'} - Apuestas Abiertas',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 20),
