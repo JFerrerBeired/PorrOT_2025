@@ -61,6 +61,13 @@ class _NomineeSelectionWidgetState extends State<NomineeSelectionWidget> {
   }
 
   void _saveNominations() {
+    if (_selectedContestantIds.length != 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select exactly 2 nominees.')),
+      );
+      return;
+    }
+
     _updateGalaNomineesUseCase.execute(widget.galaId, _selectedContestantIds).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Nominations saved successfully!')),

@@ -6,7 +6,7 @@ class CreateGalaUseCase {
 
   CreateGalaUseCase(this._repository);
 
-  Future<void> execute(Gala gala) {
+  Future<String> execute(Gala gala) {
     return _repository.createGala(gala);
   }
 }

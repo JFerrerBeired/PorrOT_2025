@@ -52,4 +52,13 @@ class PredictionRepositoryImpl implements PredictionRepository {
         .map((doc) => PredictionModel.fromFirestore(doc.data(), doc.id))
         .toList();
   }
+
+  @override
+  Future<int> getPredictionCountForGala(String galaId) async {
+    final snapshot = await _firestore
+        .collection('predictions')
+        .where('galaId', isEqualTo: galaId)
+        .get();
+    return snapshot.docs.length;
+  }
 }
