@@ -26,15 +26,15 @@ También es responsabilidad del desarrollador actualizar este documento conforme
 
 #### **Hito 2: El Flujo de Predicción del Jugador (End-to-End)**
 
-*   **Estado:** `[ ] Incompleto`
+*   **Estado:** `[x] Incompleto`
 
 *   **Objetivo:** Implementar la funcionalidad central desde la perspectiva del jugador: el ciclo completo de identificación, acceso y envío de una predicción para una gala.
 
 *   **Desarrollos Clave:**
-    *   [ ] Implementar la `PlayerSelectionScreen` con la lógica para seleccionar un usuario existente o crear uno nuevo.
-    *   [ ] Implementar una `DashboardScreen` básica que muestre un saludo y el botón para navegar a la pantalla de predicción.
-    *   [ ] Implementar la `PredictionScreen` con todo su formulario, incluyendo la lógica de UI para la selección de salvados.
-    *   [ ] Implementar el Caso de Uso y el Repositorio para guardar un documento de predicción en la colección `predictions` de Firestore.
+    *   [x] Implementar la `PlayerSelectionScreen` con la lógica para seleccionar un usuario existente o crear uno nuevo.
+    *   [x] Implementar una `DashboardScreen` básica que muestre un saludo y el botón para navegar a la pantalla de predicción.
+    *   [x] Implementar la `PredictionScreen` con todo su formulario, incluyendo la lógica de UI para la selección de salvados.
+    *   [x] Implementar el Caso de Uso y el Repositorio para guardar un documento de predicción en la colección `predictions` de Firestore.
 
 *   **Criterio de Aceptación (Stop & Test):** Un usuario debe poder iniciar la app, elegir/crear su perfil, rellenar completamente el formulario de predicción y guardarlo. La creación de un documento en `predictions` con los datos correctos debe ser verificable en Firestore.
 
@@ -49,8 +49,8 @@ También es responsabilidad del desarrollador actualizar este documento conforme
 *   **Desarrollos Clave:**
     *   [ ] Implementar la clase de servicio `ScoreCalculator` con las reglas de puntuación definidas.
     *   [ ] Ampliar el Panel de Administración para permitir al administrador introducir los resultados oficiales en el mapa `results` de un documento de `gala`.
-    *   [ ] Añadir un botón "Calcular Puntuaciones" al panel que, para una gala seleccionada, itere sobre todas sus predicciones, calcule los puntos y actualice los documentos correspondientes en Firestore (`predictions` y `users`).
-    *   [ ] Añadir funcionalidad al panel de administración para actualizar los estados de los concursantes según los resultados de las galas.
+    *   [ ] Añadir un botón "Calcular Puntuaciones" al panel que, para una gala seleccionada, itere sobre todas sus predicciones, calcule los puntos y actualice los documentos correspondientes en Firestore (`predictions` y `users`). Por ejemplo puede hacerse desde la vista de galas con un botón que recalcule las puntuaciones y active el servicio.
+    *   [x] Añadir funcionalidad al panel de administración para actualizar los estados de los concursantes según los resultados de las galas.
 
 *   **Criterio de Aceptación (Stop & Test):** Con predicciones de prueba creadas en el Hito 2, el administrador debe poder rellenar los resultados de una gala y ejecutar el cálculo. Se debe verificar en Firestore que los campos `score` y `totalScore` se han rellenado con los valores correctos.
 

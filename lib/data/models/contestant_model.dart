@@ -25,7 +25,8 @@ class ContestantModel extends Contestant {
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
-      if (photoUrl != null) 'photoUrl': photoUrl, // Only include photoUrl if it's not null
+      if (photoUrl != null)
+        'photoUrl': photoUrl, // Only include photoUrl if it's not null
       'status': status.toString().split('.').last,
     };
   }
