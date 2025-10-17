@@ -9,7 +9,7 @@ class GalaRepositoryImpl implements GalaRepository {
   GalaRepositoryImpl(this._firestore);
 
   @override
-  Future<void> createGala(Gala gala) async {
+  Future<String> createGala(Gala gala) async {
     final galaModel = GalaModel(
       galaId: gala.galaId,
       galaNumber: gala.galaNumber,
@@ -20,12 +20,14 @@ class GalaRepositoryImpl implements GalaRepository {
 
     // If galaId is null, auto-generate one using Firestore's document ID
     if (gala.galaId == null) {
-      await _firestore.collection('galas').add(galaModel.toFirestore());
+      final docRef = await _firestore.collection('galas').add(galaModel.toFirestore());
+      return docRef.id;
     } else {
       await _firestore
           .collection('galas')
           .doc(gala.galaId)
           .set(galaModel.toFirestore());
+      return gala.galaId!;
     }
   }
 
@@ -63,5 +65,12 @@ class GalaRepositoryImpl implements GalaRepository {
           .doc(gala.galaId)
           .update(galaModel.toFirestore());
     }
+  }
+
+  @override
+  Future<void> updateGalaNominees(String galaId, List<String> nominatedContestantIds) async {
+    await _firestore.collection('galas').doc(galaId).update({
+      'nominatedContestants': nominatedContestantIds,
+    });
   }
 }

@@ -62,4 +62,11 @@ class ContestantRepositoryImpl implements ContestantRepository {
           .update(contestantModel.toFirestore());
     }
   }
+
+  @override
+  Future<void> updateContestantStatus(String contestantId, ContestantStatus newStatus) async {
+    await _firestore.collection('contestants').doc(contestantId).update({
+      'status': newStatus.toString().split('.').last,
+    });
+  }
 }

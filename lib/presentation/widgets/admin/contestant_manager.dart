@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:porrot_2025/data/repositories/contestant_repository_impl.dart';
 import 'package:porrot_2025/domain/usecases/create_contestant_usecase.dart';
+import 'package:porrot_2025/domain/usecases/update_contestant_status_usecase.dart';
 import '../../../domain/entities/contestant.dart';
 
 class ContestantManager extends StatefulWidget {
@@ -20,6 +21,7 @@ class _ContestantManagerState extends State<ContestantManager> {
   bool _isLoading = true;
 
   late final CreateContestantUseCase _createContestantUseCase;
+  late final UpdateContestantStatusUseCase _updateContestantStatusUseCase;
   late final ContestantRepositoryImpl _contestantRepository;
 
   @override
@@ -30,6 +32,7 @@ class _ContestantManagerState extends State<ContestantManager> {
       FirebaseFirestore.instance,
     );
     _createContestantUseCase = CreateContestantUseCase(_contestantRepository);
+    _updateContestantStatusUseCase = UpdateContestantStatusUseCase(_contestantRepository);
     _loadContestants();
   }
 
@@ -81,6 +84,25 @@ class _ContestantManagerState extends State<ContestantManager> {
       } catch (e) {
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Failed to save contestant: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateContestantStatus(String contestantId, bool isActive) async {
+    final newStatus = isActive ? ContestantStatus.active : ContestantStatus.eliminated;
+    try {
+      await _updateContestantStatusUseCase.execute(contestantId, newStatus);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Contestant status updated successfully!')),
+        );
+      }
+      _loadContestants();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
         );
       }
     }

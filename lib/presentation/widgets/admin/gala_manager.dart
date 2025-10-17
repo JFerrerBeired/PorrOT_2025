@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:porrot_2025/data/repositories/gala_repository_impl.dart';
+import 'package:porrot_2025/data/repositories/prediction_repository_impl.dart';
 import 'package:porrot_2025/domain/entities/gala.dart';
 import 'package:porrot_2025/domain/usecases/create_gala_usecase.dart';
+import 'package:porrot_2025/domain/usecases/get_prediction_count_for_gala_usecase.dart';
+import 'package:porrot_2025/presentation/widgets/admin/nominee_selection_widget.dart';
 
 class GalaManager extends StatefulWidget {
   const GalaManager({super.key});
@@ -18,6 +21,7 @@ class _GalaManagerState extends State<GalaManager> {
   bool _isLoading = true;
 
   late final CreateGalaUseCase _createGalaUseCase;
+  late final GetPredictionCountForGalaUseCase _getPredictionCountForGalaUseCase;
   late final GalaRepositoryImpl _galaRepository;
 
   @override
@@ -25,7 +29,9 @@ class _GalaManagerState extends State<GalaManager> {
     super.initState();
     // In a real app, use dependency injection
     _galaRepository = GalaRepositoryImpl(FirebaseFirestore.instance);
+    final predictionRepository = PredictionRepositoryImpl(FirebaseFirestore.instance);
     _createGalaUseCase = CreateGalaUseCase(_galaRepository);
+    _getPredictionCountForGalaUseCase = GetPredictionCountForGalaUseCase(predictionRepository);
     _loadGalas();
   }
 
@@ -61,7 +67,7 @@ class _GalaManagerState extends State<GalaManager> {
       );
 
       try {
-        await _createGalaUseCase.execute(gala);
+        final newGalaId = await _createGalaUseCase.execute(gala);
         scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('Gala created successfully!')),
         );
@@ -69,12 +75,22 @@ class _GalaManagerState extends State<GalaManager> {
         _galaNumberController.clear();
         // Refresh the list of galas
         _loadGalas();
+        _showNomineeSelectionDialog(newGalaId);
       } catch (e) {
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Failed to create gala: $e')),
         );
       }
     }
+  }
+
+  void _showNomineeSelectionDialog(String galaId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return NomineeSelectionWidget(galaId: galaId);
+      },
+    ).then((_) => _loadGalas());
   }
 
   @override
@@ -141,9 +157,29 @@ class _GalaManagerState extends State<GalaManager> {
                       'Date: ${gala.date.toString()} | '
                       'ID: ${gala.galaId ?? "Auto-generated"}',
                     ),
-                    trailing: Text(
-                      '${gala.nominatedContestants.length} nominated',
-                      style: const TextStyle(color: Colors.grey),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FutureBuilder<int>(
+                          future: _getPredictionCount(gala.galaId!),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const CircularProgressIndicator();
+                            }
+                            if (snapshot.hasError) {
+                              return const Text('Error');
+                            }
+                            return Text(
+                              '${snapshot.data} votes',
+                              style: const TextStyle(color: Colors.grey),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.people),
+                          onPressed: () => _showNomineeSelectionDialog(gala.galaId!),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -152,6 +188,10 @@ class _GalaManagerState extends State<GalaManager> {
         ],
       ),
     );
+  }
+
+  Future<int> _getPredictionCount(String galaId) async {
+    return _getPredictionCountForGalaUseCase.execute(galaId);
   }
 
   @override
